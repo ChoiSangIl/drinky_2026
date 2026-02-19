@@ -85,6 +85,27 @@ class CheckInServiceTest {
     }
 
     @Test
+    fun `getMonthlyCheckIns returns map of date to check-in`() {
+        val userId = UUID.randomUUID()
+        val checkIn1 = CheckIn(id = UUID.randomUUID(), userId = userId, checkDate = LocalDate.of(2026, 2, 1), isSober = true)
+        val checkIn2 = CheckIn(id = UUID.randomUUID(), userId = userId, checkDate = LocalDate.of(2026, 2, 15), isSober = false)
+
+        every {
+            checkInRepository.findByUserIdAndCheckDateBetween(
+                userId,
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 2, 28)
+            )
+        } returns listOf(checkIn1, checkIn2)
+
+        val result = checkInService.getMonthlyCheckIns(userId, 2026, 2)
+
+        assertThat(result).hasSize(2)
+        assertThat(result[LocalDate.of(2026, 2, 1)]?.isSober).isTrue()
+        assertThat(result[LocalDate.of(2026, 2, 15)]?.isSober).isFalse()
+    }
+
+    @Test
     fun `getTodayCheckIn returns null when no check-in`() {
         val userId = UUID.randomUUID()
 

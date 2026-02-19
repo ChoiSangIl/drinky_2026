@@ -34,6 +34,7 @@ class HomeController {
                 "profileImage" to principal.profileImage
             ))
         }
+        model.addAttribute("currentPage", "home")
         return "pages/home"
     }
 }

@@ -48,6 +48,13 @@ class CheckInService(
         return checkIn
     }
 
+    fun getMonthlyCheckIns(userId: UUID, year: Int, month: Int): Map<LocalDate, CheckIn> {
+        val startDate = LocalDate.of(year, month, 1)
+        val endDate = startDate.withDayOfMonth(startDate.lengthOfMonth())
+        return checkInRepository.findByUserIdAndCheckDateBetween(userId, startDate, endDate)
+            .associateBy { it.checkDate }
+    }
+
     fun getRecentCheckIns(userId: UUID, days: Int = 7): List<CheckIn> {
         val endDate = LocalDate.now()
         val startDate = endDate.minusDays(days.toLong() - 1)
