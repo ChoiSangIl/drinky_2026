@@ -38,6 +38,9 @@ frontend/node_modules/
 # Test
 /out/
 
+# GitHub Workflows (workflow scope 토큰 필요, 일단 제외)
+.github/workflows/
+
 # Credentials
 *-service-account.json
 firebase-*.json
