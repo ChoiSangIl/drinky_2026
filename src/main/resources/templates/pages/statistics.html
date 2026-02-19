@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/app-base}">
+<head>
+    <title>통계</title>
+</head>
+<body>
+<main layout:fragment="content" class="pb-20">
+    <header class="px-4 py-6">
+        <h1 class="text-xl font-bold text-gray-800">통계</h1>
+        <p class="text-sm text-gray-500">나의 음주 습관을 확인하세요</p>
+    </header>
+
+    <!-- 데이터 있는 경우 -->
+    <div th:if="${hasData}">
+        <!-- 인사이트 메시지 -->
+        <section class="px-4 mb-4">
+            <div class="bg-emerald-50 rounded-2xl p-4 text-center">
+                <p class="text-emerald-700 font-medium" th:text="${insight}">인사이트 메시지</p>
+            </div>
+        </section>
+
+        <!-- 요약 통계 카드 -->
+        <section class="px-4 mb-6">
+            <div class="grid grid-cols-3 gap-3">
+                <!-- 이번 주 -->
+                <div class="bg-white rounded-xl p-3 shadow-sm text-center">
+                    <p class="text-xs text-gray-500">이번 주 음주</p>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${stats.thisWeekDrinking + '일'}">0일</p>
+                    <p th:class="${stats.weekChange < 0 ? 'text-emerald-500' : (stats.weekChange > 0 ? 'text-orange-500' : 'text-gray-400')}"
+                       class="text-xs mt-1" th:text="${stats.weekTrend}">- 변화 없음</p>
+                </div>
+                <!-- 이번 달 -->
+                <div class="bg-white rounded-xl p-3 shadow-sm text-center">
+                    <p class="text-xs text-gray-500">이번 달 음주</p>
+                    <p class="text-2xl font-bold text-gray-800" th:text="${stats.thisMonthDrinking + '일'}">0일</p>
+                    <p th:class="${stats.monthChange < 0 ? 'text-emerald-500' : (stats.monthChange > 0 ? 'text-orange-500' : 'text-gray-400')}"
+                       class="text-xs mt-1" th:text="${stats.monthTrend}">- 변화 없음</p>
+                </div>
+                <!-- 스트릭 -->
+                <div class="bg-white rounded-xl p-3 shadow-sm text-center">
+                    <p class="text-xs text-gray-500">연속 절주</p>
+                    <p class="text-2xl font-bold text-emerald-600" th:text="${stats.currentStreak + '일'}">0일</p>
+                    <p class="text-xs text-gray-400 mt-1" th:text="'최장 ' + ${stats.longestStreak} + '일'">최장 0일</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 주간 차트 -->
+        <section class="px-4 mb-4">
+            <div class="bg-white rounded-2xl shadow-sm p-4">
+                <h3 class="text-base font-semibold text-gray-800 mb-4">주간 음주 현황</h3>
+                <canvas id="weeklyChart" height="200"></canvas>
+            </div>
+        </section>
+
+        <!-- 월간 차트 -->
+        <section class="px-4 mb-4">
+            <div class="bg-white rounded-2xl shadow-sm p-4">
+                <h3 class="text-base font-semibold text-gray-800 mb-4">월간 추이</h3>
+                <canvas id="monthlyChart" height="200"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <!-- 데이터 없는 경우 -->
+    <div th:unless="${hasData}" class="px-4">
+        <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <span class="text-5xl">📊</span>
+            <p class="text-gray-500 mt-4 mb-2">아직 기록이 없어요</p>
+            <p class="text-sm text-gray-400 mb-6">오늘부터 시작해볼까요?</p>
+            <a href="/"
+               class="inline-block px-6 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition">
+                체크인 하러 가기
+            </a>
+        </div>
+    </div>
+</main>
+
+<th:block layout:fragment="scripts">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:if="${hasData}" th:inline="javascript">
+    var weeklyStats = /*[[${weeklyStats}]]*/ [];
+    var monthlyStats = /*[[${monthlyStats}]]*/ [];
+
+    // 주간 차트
+    new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: weeklyStats.map(function(d) { return d.weekLabel; }),
+            datasets: [{
+                label: '금주',
+                data: weeklyStats.map(function(d) { return d.soberDays; }),
+                backgroundColor: '#10B981',
+                borderRadius: 4
+            }, {
+                label: '음주',
+                data: weeklyStats.map(function(d) { return d.drinkingDays; }),
+                backgroundColor: '#FB923C',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, max: 7, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // 월간 차트
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthlyStats.map(function(d) { return d.monthLabel; }),
+            datasets: [{
+                label: '금주',
+                data: monthlyStats.map(function(d) { return d.soberDays; }),
+                backgroundColor: '#10B981',
+                borderRadius: 4
+            }, {
+                label: '음주',
+                data: monthlyStats.map(function(d) { return d.drinkingDays; }),
+                backgroundColor: '#FB923C',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, ticks: { stepSize: 5 } }
+            }
+        }
+    });
+</script>
+</th:block>
+</body>
+</html>
