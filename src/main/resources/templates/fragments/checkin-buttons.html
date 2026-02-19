@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="buttons" id="checkin-area" class="flex justify-center gap-8">
+    <!-- 안마심 버튼 (is_sober = true) -->
+    <button
+        hx-post="/checkin"
+        hx-vals='{"isSober": true}'
+        hx-target="#checkin-area"
+        hx-swap="innerHTML transition:true"
+        class="w-24 h-24 rounded-full bg-emerald-100 hover:bg-emerald-200
+               flex flex-col items-center justify-center transition-all duration-150
+               active:scale-95 touch-manipulation min-w-[96px] min-h-[96px]">
+        <span class="text-4xl">&#9898;</span>
+        <span class="text-xs text-emerald-700 mt-1 font-medium">안 마셨어요</span>
+    </button>
+
+    <!-- 마심 버튼 (is_sober = false) -->
+    <button
+        hx-post="/checkin"
+        hx-vals='{"isSober": false}'
+        hx-target="#checkin-area"
+        hx-swap="innerHTML transition:true"
+        class="w-24 h-24 rounded-full bg-gray-100 hover:bg-gray-200
+               flex flex-col items-center justify-center transition-all duration-150
+               active:scale-95 touch-manipulation min-w-[96px] min-h-[96px]">
+        <span class="text-4xl">&#10060;</span>
+        <span class="text-xs text-gray-600 mt-1 font-medium">마셨어요</span>
+    </button>
+</div>
+</html>

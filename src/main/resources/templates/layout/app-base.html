@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#10b981">
+    <meta name="description" content="Drinky - 음주 기록 앱">
+
+    <title layout:title-pattern="$CONTENT_TITLE - Drinky">Drinky</title>
+
+    <!-- TailwindCSS -->
+    <link rel="stylesheet" th:href="@{/static/css/output.css}">
+
+    <!-- CSRF -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <!-- HTMX -->
+    <script th:src="@{/static/js/htmx.min.js}" defer></script>
+
+    <!-- Alpine.js -->
+    <script th:src="@{/static/js/alpine.min.js}" defer></script>
+
+    <style>
+        /* Safe area for iPhone notch */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+    </style>
+
+    <th:block layout:fragment="head"></th:block>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-md mx-auto min-h-screen flex flex-col">
+        <!-- 메인 콘텐츠 -->
+        <main layout:fragment="content" class="flex-1 pb-20">
+        </main>
+
+        <!-- 하단 네비게이션 -->
+        <th:block th:replace="~{fragments/bottom-nav :: nav}"></th:block>
+    </div>
+
+    <!-- HTMX CSRF 자동 포함 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('htmx:configRequest', function(event) {
+                var token = document.querySelector('meta[name="_csrf"]').content;
+                var header = document.querySelector('meta[name="_csrf_header"]').content;
+                event.detail.headers[header] = token;
+            });
+        });
+    </script>
+    <th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

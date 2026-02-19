@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(./gradlew.bat test:*)",
+      "Bash(npm install:*)",
+      "Bash(.gradlew.bat build -x test)",
+      "Bash(cmd /c:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew bootRun:*)",
+      "Bash(./gradlew clean build:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

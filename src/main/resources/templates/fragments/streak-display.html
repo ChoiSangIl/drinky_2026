@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 스트릭 표시 Fragment -->
+<div th:fragment="display" id="streak-content">
+    <!-- 스트릭 숫자 -->
+    <div class="flex items-center gap-3 mb-4">
+        <span class="text-4xl" th:text="${streak.currentStreak > 0 ? '&#128293;' : '&#128167;'}">&#128293;</span>
+        <div>
+            <p class="text-2xl font-bold text-gray-800">
+                <span th:text="${streak.currentStreak}">0</span>일
+            </p>
+            <p class="text-sm text-gray-500">연속 절주</p>
+        </div>
+    </div>
+
+    <!-- 메시지 -->
+    <p class="text-sm text-gray-600 mb-4" th:text="${message}">
+        오늘부터 시작해볼까요?
+    </p>
+
+    <!-- 최장 스트릭 -->
+    <p th:if="${streak.longestStreak > 0}" class="text-xs text-gray-400 mb-4">
+        최고 기록: <span th:text="${streak.longestStreak}">0</span>일
+    </p>
+
+    <!-- 주간 미니 캘린더 -->
+    <div th:replace="~{fragments/weekly-preview :: calendar(${weeklyData})}"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/auth-base}">
+<head>
+    <title>시작하기</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="flex flex-col items-center justify-center min-h-screen px-6"
+         x-data="{ slide: 0 }">
+
+        <!-- 슬라이드 컨테이너 -->
+        <div class="w-full max-w-xs text-center">
+
+            <!-- 슬라이드 1: 앱 소개 -->
+            <div x-show="slide === 0" x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-x-4"
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <div class="text-6xl mb-6">&#127866;</div>
+                <h1 class="text-3xl font-bold text-emerald-600 mb-2">Drinky</h1>
+                <p class="text-lg text-gray-600 mb-2">더 오래, 더 함께</p>
+                <p class="text-sm text-gray-400">건강한 음주 습관을 만들어 가세요</p>
+            </div>
+
+            <!-- 슬라이드 2: 기능 소개 -->
+            <div x-show="slide === 1" x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-x-4"
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-4xl mb-2">&#9989;</div>
+                        <h2 class="text-lg font-semibold text-gray-800">원터치 체크인</h2>
+                        <p class="text-sm text-gray-500">하루 한 번, 오늘의 음주 여부를 기록하세요</p>
+                    </div>
+                    <div>
+                        <div class="text-4xl mb-2">&#128293;</div>
+                        <h2 class="text-lg font-semibold text-gray-800">스트릭 관리</h2>
+                        <p class="text-sm text-gray-500">연속 절주 기록을 이어가세요</p>
+                    </div>
+                    <div>
+                        <div class="text-4xl mb-2">&#128200;</div>
+                        <h2 class="text-lg font-semibold text-gray-800">통계 확인</h2>
+                        <p class="text-sm text-gray-500">나의 음주 패턴을 한눈에 확인하세요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 인디케이터 -->
+        <div class="flex space-x-2 mt-8 mb-6">
+            <div class="w-2 h-2 rounded-full transition-colors duration-300"
+                 :class="slide === 0 ? 'bg-emerald-500' : 'bg-gray-300'"></div>
+            <div class="w-2 h-2 rounded-full transition-colors duration-300"
+                 :class="slide === 1 ? 'bg-emerald-500' : 'bg-gray-300'"></div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="w-full max-w-xs">
+            <button x-show="slide === 0"
+                    @click="slide = 1"
+                    class="w-full py-3 px-4 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 active:bg-emerald-700 transition min-h-[44px]">
+                다음
+            </button>
+            <a x-show="slide === 1"
+               th:href="@{/login}"
+               class="block w-full py-3 px-4 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 active:bg-emerald-700 transition text-center min-h-[44px]">
+                시작하기
+            </a>
+        </div>
+
+        <!-- 건너뛰기 -->
+        <a th:href="@{/login}" class="mt-4 text-sm text-gray-400 hover:text-gray-600 transition">
+            건너뛰기
+        </a>
+    </div>
+</div>
+</body>
+</html>

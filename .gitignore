@@ -1,0 +1,43 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# Kotlin
+*.class
+*.jar
+*.war
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (for TailwindCSS)
+node_modules/
+frontend/node_modules/
+
+# Test
+/out/
+
+# Credentials
+*-service-account.json
+firebase-*.json

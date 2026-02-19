@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/app-base}">
+<head>
+    <title>홈</title>
+</head>
+<body>
+<main layout:fragment="content" class="pb-20">
+    <!-- 헤더 -->
+    <header class="px-4 py-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm">오늘도 화이팅!</p>
+                <h1 class="text-xl font-bold text-gray-800">
+                    안녕하세요, <span th:text="${user?.nickname} ?: '사용자'">사용자</span>님! &#128075;
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- 프로필 이미지 -->
+                <div th:if="${user?.profileImage}" class="w-10 h-10 rounded-full overflow-hidden">
+                    <img th:src="${user.profileImage}" alt="프로필" class="w-full h-full object-cover">
+                </div>
+                <div th:unless="${user?.profileImage}"
+                     class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <span class="text-emerald-600 font-medium" th:text="${user?.nickname?.substring(0,1)} ?: 'U'">U</span>
+                </div>
+                <!-- 로그아웃 버튼 -->
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit"
+                            class="p-2 text-gray-400 hover:text-gray-600 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                            title="로그아웃">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- 체크인 카드 -->
+    <section class="px-4 mb-6">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">오늘의 체크인</h2>
+            <p class="text-sm text-gray-500 mb-4">오늘 음주 여부를 기록해주세요</p>
+            <!-- HTMX로 체크인 상태 로드 -->
+            <div id="checkin-area"
+                 hx-get="/checkin/today"
+                 hx-trigger="load"
+                 hx-swap="innerHTML"
+                 class="flex justify-center gap-8">
+                <!-- 로딩 상태 -->
+                <div class="animate-pulse flex gap-8">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full"></div>
+                    <div class="w-24 h-24 bg-gray-100 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 스트릭 카드 -->
+    <section class="px-4">
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">나의 스트릭</h2>
+            <!-- HTMX로 스트릭 정보 로드 -->
+            <div id="streak-area"
+                 hx-get="/streak"
+                 hx-trigger="load, streakUpdated from:body"
+                 hx-swap="innerHTML">
+                <!-- 로딩 상태 -->
+                <div class="animate-pulse">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-gray-100 rounded-full"></div>
+                        <div>
+                            <div class="h-6 w-16 bg-gray-100 rounded mb-1"></div>
+                            <div class="h-4 w-12 bg-gray-100 rounded"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between gap-1">
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="h-3 w-4 bg-gray-100 rounded mx-auto mb-1"></div>
+                            <div class="w-8 h-8 mx-auto bg-gray-100 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

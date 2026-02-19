@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 주간 미니 캘린더 Fragment -->
+<div th:fragment="calendar(weeklyData)" class="flex justify-between gap-1">
+    <div th:each="day : ${weeklyData}" class="flex-1 text-center">
+        <p class="text-xs text-gray-400 mb-1" th:text="${day.dayOfWeekKr}">월</p>
+        <div th:class="${day.isToday ? 'ring-2 ring-emerald-400 ring-offset-1' : ''}"
+             class="w-8 h-8 mx-auto rounded-full flex items-center justify-center">
+            <!-- 절주 -->
+            <span th:if="${day.isSober != null && day.isSober}"
+                  class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-lg">&#11093;</span>
+            <!-- 음주 -->
+            <span th:if="${day.isSober != null && !day.isSober}"
+                  class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-lg">&#10060;</span>
+            <!-- 기록 없음 -->
+            <span th:if="${day.isSober == null}"
+                  class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-300">&#183;</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

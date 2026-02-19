@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: drinky
+  profiles:
+    active: local
+
+  # Thymeleaf
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+
+  # JPA Common
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# Server
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 7d
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.drinky: DEBUG
+    org.springframework.security: DEBUG

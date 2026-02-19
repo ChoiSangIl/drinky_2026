@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#10b981">
+    <meta name="description" content="Drinky - 음주 기록 앱">
+
+    <title layout:title-pattern="$CONTENT_TITLE - Drinky">Drinky</title>
+
+    <!-- TailwindCSS -->
+    <link rel="stylesheet" th:href="@{/static/css/output.css}">
+
+    <!-- HTMX -->
+    <script th:src="@{/static/js/htmx.min.js}" defer></script>
+
+    <!-- Alpine.js -->
+    <script th:src="@{/static/js/alpine.min.js}" defer></script>
+
+    <!-- Additional head content -->
+    <th:block layout:fragment="head"></th:block>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data>
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto">
+        <div layout:fragment="content">
+            <!-- Page content goes here -->
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50">
+    </div>
+
+    <!-- Additional scripts -->
+    <th:block layout:fragment="scripts"></th:block>
+</body>
+</html>
