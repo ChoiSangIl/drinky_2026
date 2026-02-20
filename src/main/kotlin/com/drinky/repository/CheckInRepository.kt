@@ -9,5 +9,6 @@ import java.util.UUID
 interface CheckInRepository : JpaRepository<CheckIn, UUID> {
     fun findByUserIdAndCheckDate(userId: UUID, checkDate: LocalDate): CheckIn?
     fun findByUserIdOrderByCheckDateDesc(userId: UUID, pageable: Pageable): List<CheckIn>
+    fun findByUserIdOrderByCheckDateAsc(userId: UUID): List<CheckIn>
     fun findByUserIdAndCheckDateBetween(userId: UUID, startDate: LocalDate, endDate: LocalDate): List<CheckIn>
 }

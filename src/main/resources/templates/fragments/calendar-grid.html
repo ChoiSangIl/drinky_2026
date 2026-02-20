@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<div th:fragment="grid" id="calendar-grid">
+<div th:fragment="grid" id="calendar-grid"
+     hx-trigger="calendarUpdated from:body"
+     th:hx-get="@{/calendar/{year}/{month}(year=${year}, month=${month})}"
+     hx-swap="outerHTML">
     <!-- 월 네비게이션 -->
     <div class="flex items-center justify-between mb-4">
         <button th:hx-get="@{/calendar/{year}/{month}(year=${prevYear}, month=${prevMonth})}"

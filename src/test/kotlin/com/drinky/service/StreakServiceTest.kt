@@ -2,6 +2,7 @@ package com.drinky.service
 
 import com.drinky.domain.entity.CheckIn
 import com.drinky.domain.entity.Streak
+import com.drinky.repository.CheckInRepository
 import com.drinky.repository.StreakRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -16,12 +17,14 @@ import java.util.UUID
 class StreakServiceTest {
 
     private lateinit var streakRepository: StreakRepository
+    private lateinit var checkInRepository: CheckInRepository
     private lateinit var streakService: StreakService
 
     @BeforeEach
     fun setUp() {
         streakRepository = mockk()
-        streakService = StreakService(streakRepository)
+        checkInRepository = mockk()
+        streakService = StreakService(streakRepository, checkInRepository)
     }
 
     @Test
@@ -174,6 +177,65 @@ class StreakServiceTest {
         val result = streakService.isStreakJustBroken(userId)
 
         assertThat(result).isTrue()
+    }
+
+    @Test
+    fun `recalculateStreak computes correct streak from all check-ins`() {
+        val userId = UUID.randomUUID()
+        val existingStreak = Streak(id = UUID.randomUUID(), userId = userId)
+        val checkIns = listOf(
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 14), isSober = true),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 15), isSober = true),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 16), isSober = false),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 17), isSober = true),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 18), isSober = true),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 19), isSober = true)
+        )
+
+        every { checkInRepository.findByUserIdOrderByCheckDateAsc(userId) } returns checkIns
+        every { streakRepository.findByUserId(userId) } returns existingStreak
+        every { streakRepository.save(any()) } answers { firstArg() }
+
+        val result = streakService.recalculateStreak(userId)
+
+        assertThat(result.currentStreak).isEqualTo(3) // 17, 18, 19
+        assertThat(result.longestStreak).isEqualTo(3) // max(2, 3) = 3
+        assertThat(result.streakStartDate).isEqualTo(LocalDate.of(2026, 2, 17))
+        assertThat(result.lastCheckDate).isEqualTo(LocalDate.of(2026, 2, 19))
+    }
+
+    @Test
+    fun `recalculateStreak with no check-ins`() {
+        val userId = UUID.randomUUID()
+        val existingStreak = Streak(id = UUID.randomUUID(), userId = userId, currentStreak = 5, longestStreak = 5)
+
+        every { checkInRepository.findByUserIdOrderByCheckDateAsc(userId) } returns emptyList()
+        every { streakRepository.findByUserId(userId) } returns existingStreak
+        every { streakRepository.save(any()) } answers { firstArg() }
+
+        val result = streakService.recalculateStreak(userId)
+
+        assertThat(result.currentStreak).isEqualTo(0)
+        assertThat(result.lastCheckDate).isNull()
+    }
+
+    @Test
+    fun `recalculateStreak preserves longest streak from past`() {
+        val userId = UUID.randomUUID()
+        val existingStreak = Streak(id = UUID.randomUUID(), userId = userId, longestStreak = 10)
+        val checkIns = listOf(
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 18), isSober = true),
+            CheckIn(userId = userId, checkDate = LocalDate.of(2026, 2, 19), isSober = true)
+        )
+
+        every { checkInRepository.findByUserIdOrderByCheckDateAsc(userId) } returns checkIns
+        every { streakRepository.findByUserId(userId) } returns existingStreak
+        every { streakRepository.save(any()) } answers { firstArg() }
+
+        val result = streakService.recalculateStreak(userId)
+
+        assertThat(result.currentStreak).isEqualTo(2)
+        assertThat(result.longestStreak).isEqualTo(10) // preserves old longest
     }
 
     @Test

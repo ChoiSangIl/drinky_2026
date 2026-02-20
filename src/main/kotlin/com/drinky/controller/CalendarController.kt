@@ -1,23 +1,21 @@
 package com.drinky.controller
 
-import com.drinky.domain.dto.CalendarDayDto
-import com.drinky.domain.entity.CheckIn
 import com.drinky.security.UserPrincipal
+import com.drinky.service.CalendarService
 import com.drinky.service.CheckInService
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.YearMonth
-import java.util.UUID
 
 @Controller
 @RequestMapping("/calendar")
 class CalendarController(
+    private val calendarService: CalendarService,
     private val checkInService: CheckInService
 ) {
 
@@ -27,7 +25,7 @@ class CalendarController(
         model: Model
     ): String {
         val now = LocalDate.now()
-        addCalendarData(model, principal.id, now.year, now.monthValue)
+        addCalendarModel(model, principal.id, now.year, now.monthValue)
         model.addAttribute("currentPage", "calendar")
         return "pages/calendar"
     }
@@ -39,72 +37,30 @@ class CalendarController(
         @PathVariable month: Int,
         model: Model
     ): String {
-        addCalendarData(model, principal.id, year, month)
+        addCalendarModel(model, principal.id, year, month)
         return "fragments/calendar-grid"
     }
 
-    private fun addCalendarData(model: Model, userId: UUID, year: Int, month: Int) {
-        val checkIns = checkInService.getMonthlyCheckIns(userId, year, month)
-        val calendarDays = buildCalendarDays(year, month, checkIns)
-        val yearMonth = YearMonth.of(year, month)
-
-        model.addAttribute("year", year)
-        model.addAttribute("month", month)
-        model.addAttribute("calendarDays", calendarDays)
-        model.addAttribute("prevYear", yearMonth.minusMonths(1).year)
-        model.addAttribute("prevMonth", yearMonth.minusMonths(1).monthValue)
-        model.addAttribute("nextYear", yearMonth.plusMonths(1).year)
-        model.addAttribute("nextMonth", yearMonth.plusMonths(1).monthValue)
+    @GetMapping("/day/{date}")
+    fun getDayDetail(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate,
+        model: Model
+    ): String {
+        model.addAttribute("date", date)
+        model.addAttribute("checkIn", checkInService.getCheckIn(principal.id, date))
+        model.addAttribute("editable", checkInService.isEditable(date))
+        return "fragments/day-detail"
     }
 
-    private fun buildCalendarDays(year: Int, month: Int, checkIns: Map<LocalDate, CheckIn>): List<CalendarDayDto> {
-        val yearMonth = YearMonth.of(year, month)
-        val firstDay = yearMonth.atDay(1)
-        val lastDay = yearMonth.atEndOfMonth()
-        val today = LocalDate.now()
-
-        val days = mutableListOf<CalendarDayDto>()
-
-        // 이전 달 빈 칸 (일요일 시작)
-        val firstDayOfWeek = firstDay.dayOfWeek
-        val paddingDays = if (firstDayOfWeek == DayOfWeek.SUNDAY) 0 else firstDayOfWeek.value
-        for (i in paddingDays downTo 1) {
-            val date = firstDay.minusDays(i.toLong())
-            days.add(CalendarDayDto(
-                date = date,
-                dayOfMonth = date.dayOfMonth,
-                isCurrentMonth = false,
-                isToday = false,
-                isFuture = false
-            ))
-        }
-
-        // 현재 달
-        for (day in 1..lastDay.dayOfMonth) {
-            val date = LocalDate.of(year, month, day)
-            days.add(CalendarDayDto(
-                date = date,
-                dayOfMonth = day,
-                isCurrentMonth = true,
-                isToday = date == today,
-                isFuture = date.isAfter(today),
-                checkIn = checkIns[date]
-            ))
-        }
-
-        // 다음 달 빈 칸 (6주 채우기)
-        val remaining = 42 - days.size
-        for (i in 1..remaining) {
-            val date = lastDay.plusDays(i.toLong())
-            days.add(CalendarDayDto(
-                date = date,
-                dayOfMonth = date.dayOfMonth,
-                isCurrentMonth = false,
-                isToday = false,
-                isFuture = date.isAfter(today)
-            ))
-        }
-
-        return days
+    private fun addCalendarModel(model: Model, userId: java.util.UUID, year: Int, month: Int) {
+        val data = calendarService.getCalendarData(userId, year, month)
+        model.addAttribute("year", data.year)
+        model.addAttribute("month", data.month)
+        model.addAttribute("calendarDays", data.calendarDays)
+        model.addAttribute("prevYear", data.prevYear)
+        model.addAttribute("prevMonth", data.prevMonth)
+        model.addAttribute("nextYear", data.nextYear)
+        model.addAttribute("nextMonth", data.nextMonth)
     }
 }

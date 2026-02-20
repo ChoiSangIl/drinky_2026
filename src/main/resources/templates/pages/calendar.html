@@ -6,7 +6,7 @@
     <title>기록</title>
 </head>
 <body>
-<main layout:fragment="content" class="pb-20">
+<main layout:fragment="content" class="pb-20" x-data="{ sheetOpen: false }">
     <header class="px-4 py-6">
         <h1 class="text-xl font-bold text-gray-800">나의 기록</h1>
         <p class="text-sm text-gray-500">월별 음주 기록을 확인하세요</p>
@@ -14,66 +14,40 @@
 
     <section class="px-4">
         <div class="bg-white rounded-2xl shadow-sm p-4">
-            <div id="calendar-grid"
-                 th:replace="~{fragments/calendar-grid :: grid}">
-            </div>
+            <div th:replace="~{fragments/calendar-grid :: grid}"></div>
         </div>
     </section>
 
+    <!-- 바텀시트 오버레이 -->
+    <div x-show="sheetOpen" @click="sheetOpen = false"
+         class="fixed inset-0 bg-black bg-opacity-50 z-40"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;"></div>
+
     <!-- 바텀시트 -->
-    <div x-data="{ open: false, date: '', status: '', note: '' }">
-        <!-- 오버레이 -->
-        <div x-show="open" @click="open = false"
-             class="fixed inset-0 bg-black bg-opacity-50 z-40"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             style="display: none;"></div>
+    <div x-show="sheetOpen"
+         class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 p-6 pb-safe max-w-md mx-auto"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-y-full"
+         x-transition:enter-end="translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-y-0"
+         x-transition:leave-end="translate-y-full"
+         style="display: none;">
 
-        <!-- 바텀시트 -->
-        <div x-show="open"
-             class="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 p-6 pb-safe max-w-md mx-auto"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="translate-y-full"
-             x-transition:enter-end="translate-y-0"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="translate-y-0"
-             x-transition:leave-end="translate-y-full"
-             style="display: none;">
-
-            <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-            <div class="text-center">
-                <p class="text-lg font-semibold text-gray-800" x-text="date"></p>
-                <div class="my-6">
-                    <template x-if="status === 'sober'">
-                        <div>
-                            <span class="text-5xl">⭕</span>
-                            <p class="text-emerald-600 font-medium mt-2">금주</p>
-                        </div>
-                    </template>
-                    <template x-if="status === 'drink'">
-                        <div>
-                            <span class="text-5xl">❌</span>
-                            <p class="text-gray-500 font-medium mt-2">음주</p>
-                        </div>
-                    </template>
-                    <template x-if="status === 'none'">
-                        <div>
-                            <span class="text-3xl text-gray-300">-</span>
-                            <p class="text-gray-400 mt-2">기록 없음</p>
-                        </div>
-                    </template>
-                </div>
-                <p x-show="note" class="text-sm text-gray-500 mb-4" x-text="note"></p>
-                <button @click="open = false"
-                        class="w-full py-3 text-gray-500 hover:text-gray-700 font-medium">
-                    닫기
-                </button>
-            </div>
+        <div class="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+        <div id="day-detail-container">
+            <!-- HTMX로 로드 -->
         </div>
+        <button @click="sheetOpen = false"
+                class="w-full py-3 text-gray-500 hover:text-gray-700 font-medium mt-4">
+            닫기
+        </button>
     </div>
 </main>
 
@@ -81,22 +55,16 @@
 <script>
     function openDayDetail(btn) {
         var dateStr = btn.getAttribute('data-date');
-        var isSober = btn.getAttribute('data-sober');
-        var note = btn.getAttribute('data-note') || '';
-        var parts = dateStr.split('-');
-        var formatted = parts[0] + '년 ' + parseInt(parts[1]) + '월 ' + parseInt(parts[2]) + '일';
 
-        var status = 'none';
-        if (isSober === 'true') status = 'sober';
-        else if (isSober === 'false') status = 'drink';
-
-        var el = document.querySelector('[x-data]');
-        if (el && el.__x) {
-            el.__x.$data.date = formatted;
-            el.__x.$data.status = status;
-            el.__x.$data.note = note;
-            el.__x.$data.open = true;
-        }
+        htmx.ajax('GET', '/calendar/day/' + dateStr, {
+            target: '#day-detail-container',
+            swap: 'innerHTML'
+        }).then(function() {
+            var el = document.querySelector('[x-data]');
+            if (el && el._x_dataStack) {
+                Alpine.$data(el).sheetOpen = true;
+            }
+        });
     }
 </script>
 </th:block>

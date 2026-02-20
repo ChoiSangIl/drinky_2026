@@ -2,6 +2,7 @@ package com.drinky.service
 
 import com.drinky.domain.entity.CheckIn
 import com.drinky.domain.entity.Streak
+import com.drinky.repository.CheckInRepository
 import com.drinky.repository.StreakRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -11,7 +12,8 @@ import java.util.UUID
 @Service
 @Transactional(readOnly = true)
 class StreakService(
-    private val streakRepository: StreakRepository
+    private val streakRepository: StreakRepository,
+    private val checkInRepository: CheckInRepository
 ) {
 
     fun getOrCreateStreak(userId: UUID): Streak {
@@ -54,6 +56,44 @@ class StreakService(
         }
 
         streak.lastCheckDate = today
+        streak.updatedAt = LocalDateTime.now()
+        return streakRepository.save(streak)
+    }
+
+    @Transactional
+    fun recalculateStreak(userId: UUID): Streak {
+        val checkIns = checkInRepository.findByUserIdOrderByCheckDateAsc(userId)
+        val streak = getOrCreateStreak(userId)
+
+        var currentStreak = 0
+        var longestStreak = 0
+        var streakStartDate: java.time.LocalDate? = null
+        var lastSoberDate: java.time.LocalDate? = null
+
+        for (checkIn in checkIns) {
+            if (checkIn.isSober) {
+                if (lastSoberDate == null || lastSoberDate.plusDays(1) == checkIn.checkDate) {
+                    currentStreak++
+                    if (streakStartDate == null) {
+                        streakStartDate = checkIn.checkDate
+                    }
+                } else {
+                    currentStreak = 1
+                    streakStartDate = checkIn.checkDate
+                }
+                lastSoberDate = checkIn.checkDate
+                longestStreak = maxOf(longestStreak, currentStreak)
+            } else {
+                currentStreak = 0
+                streakStartDate = null
+                lastSoberDate = null
+            }
+        }
+
+        streak.currentStreak = currentStreak
+        streak.longestStreak = maxOf(streak.longestStreak, longestStreak)
+        streak.streakStartDate = streakStartDate
+        streak.lastCheckDate = checkIns.lastOrNull()?.checkDate
         streak.updatedAt = LocalDateTime.now()
         return streakRepository.save(streak)
     }

@@ -11,6 +11,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -114,5 +115,80 @@ class CheckInServiceTest {
         val result = checkInService.getTodayCheckIn(userId)
 
         assertThat(result).isNull()
+    }
+
+    @Nested
+    inner class IsEditableTest {
+
+        @Test
+        fun `today is editable`() {
+            assertThat(checkInService.isEditable(LocalDate.now())).isTrue()
+        }
+
+        @Test
+        fun `5 days ago is editable`() {
+            assertThat(checkInService.isEditable(LocalDate.now().minusDays(5))).isTrue()
+        }
+
+        @Test
+        fun `7 days ago is editable`() {
+            assertThat(checkInService.isEditable(LocalDate.now().minusDays(7))).isTrue()
+        }
+
+        @Test
+        fun `8 days ago is not editable`() {
+            assertThat(checkInService.isEditable(LocalDate.now().minusDays(8))).isFalse()
+        }
+
+        @Test
+        fun `future date is not editable`() {
+            assertThat(checkInService.isEditable(LocalDate.now().plusDays(1))).isFalse()
+        }
+    }
+
+    @Nested
+    inner class CheckInForDateTest {
+
+        @BeforeEach
+        fun setUpRecalculate() {
+            every { streakService.recalculateStreak(any()) } returns Streak(userId = UUID.randomUUID())
+        }
+
+        @Test
+        fun `creates new check-in for date without existing record`() {
+            val userId = UUID.randomUUID()
+            val date = LocalDate.now().minusDays(3)
+            val checkInSlot = slot<CheckIn>()
+
+            every { checkInRepository.findByUserIdAndCheckDate(userId, date) } returns null
+            every { checkInRepository.save(capture(checkInSlot)) } answers { checkInSlot.captured }
+
+            val result = checkInService.checkInForDate(userId, date, true)
+
+            assertThat(result.userId).isEqualTo(userId)
+            assertThat(result.checkDate).isEqualTo(date)
+            assertThat(result.isSober).isTrue()
+            verify { streakService.recalculateStreak(userId) }
+        }
+
+        @Test
+        fun `updates existing check-in for date`() {
+            val userId = UUID.randomUUID()
+            val date = LocalDate.now().minusDays(2)
+            val existing = CheckIn(
+                id = UUID.randomUUID(),
+                userId = userId,
+                checkDate = date,
+                isSober = true
+            )
+
+            every { checkInRepository.findByUserIdAndCheckDate(userId, date) } returns existing
+            every { checkInRepository.save(any()) } answers { firstArg() }
+
+            val result = checkInService.checkInForDate(userId, date, false)
+
+            assertThat(result.isSober).isFalse()
+            verify { streakService.recalculateStreak(userId) }
+        }
     }
 }
